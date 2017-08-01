@@ -8,24 +8,24 @@ var that;
 /**
  * This class represents the Hub Manager MQTT module connection
  * This module will handle the remote connections between the MQTT broker on the server and the MQTT clients (hubs)
- * 
+ *
  * Minimum setup exemple:
- *  
+ *
  *  // Init the module
  *  var hm = new HubManager(1883, 27017);
- * 
+ *
  *  // Set some control callbacks
- *  // Here we only allow 'truc' client with a predefined password 
+ *  // Here we only allow 'truc' client with a predefined password
  *  hm.authorizeClientConnection(function (client, username, password) {
  *      if (username == 'truc' && password == 'wtl en pls') return true
  *      else return false;
  *  });
- * 
+ *
  *  // Setup the server
  *  hm.setup();
- * 
+ *
  *  // Done!
- * 
+ *
  * @class HubManager
  * @version 0.0001b
  * @author Francois Leparoux (francois.leparoux@gmail.com)
@@ -153,9 +153,9 @@ class HubManager {
 
     /**
      * Publish some data (a packet) to clients subscribed to a defined topic
-     * 
-     * @param {any} data 
-     * @param {string} topic 
+     *
+     * @param {any} data
+     * @param {string} topic
      * @memberof HubManager
      */
     publishSimplePacket(data, topic) {
@@ -165,12 +165,12 @@ class HubManager {
     /**
      * Publish some data (a packet) to clients subscribed to a defined topic
      * Same as publishSimplePacket but with QoS and retin flag management
-     * 
-     * @param {any} data 
-     * @param {string} topic 
+     *
+     * @param {any} data
+     * @param {string} topic
      * @memberof HubManager
      */
-    publishComplexPacket(data, topic, qos, retain) {
+    publishComplexPacket(data, topic, qos, retain, callback) {
         var message = {
             topic: topic,
             payload: data, // or a Buffer
@@ -178,9 +178,7 @@ class HubManager {
             retain: retain // true or false
         };
 
-        this.mqttServer.publish(message, /*client,*/ function () {
-            console.log('[HubManager MQTT] Publish done (to ' + topic + ')');
-        });
+        this.mqttServer.publish(message, /*client,*/ callback);
     }
 
     /**
@@ -237,7 +235,7 @@ class HubManager {
         this.mqttServer.on('clientConnected', this.__broker_connected);
         this.mqttServer.on('published', this.__broker_published);
         this.mqttServer.on('subscribed', this.__broker_subscribed);
-        this.mqttServer.on('unsubscribed', this.__broker_unsubscribed);        
+        this.mqttServer.on('unsubscribed', this.__broker_unsubscribed);
         this.mqttServer.on('clientDisconnecting', this.__broker_disconnecting);
         this.mqttServer.on('clientDisconnected', this.__broker_disconnected);
         if (this.readyCallback != null) {
@@ -250,7 +248,7 @@ class HubManager {
      * Private function, Auth function
      */
     __broker_auth(client, username, password, callback) {
-        console.log('[HubManager MQTT] AUTH : ' + client.id + ' using ' + username + ':' + password);
+        // console.log('[HubManager MQTT] AUTH : ' + client.id + ' using ' + username + ':' + password);
         if (that.authConnCallback != null) {
             callback(null, that.authConnCallback(client, username, password));
         } else {
@@ -284,7 +282,7 @@ class HubManager {
      * Private function, fired when a client is connected
      */
     __broker_connected(client) {
-        console.log('[HubManager MQTT] ' + client.id + ' is now connected');
+        // console.log('[HubManager MQTT] ' + client.id + ' is now connected');
         if (that.connCallback != null) {
             that.connCallback(client);
         }
@@ -297,7 +295,7 @@ class HubManager {
 
         // quick fix moche comme MJ
         if (client != undefined) {
-            console.log('[HubManager MQTT] ' + client.id + ' published "' + JSON.stringify(packet.payload) + '" to ' + packet.topic);
+            // console.log('[HubManager MQTT] ' + client.id + ' published "' + JSON.stringify(packet.payload) + '" to ' + packet.topic);
             if (that.pubCallback != null) {
                 that.pubCallback(client, packet.topic, packet.payload);
             }
@@ -308,7 +306,7 @@ class HubManager {
      * Private function, fired when a client subscribes to a topic
      */
     __broker_subscribed(topic, client) {
-        console.log('[HubManager MQTT] ' + client.id + ' has subscribed to ' + topic);
+        // console.log('[HubManager MQTT] ' + client.id + ' has subscribed to ' + topic);
         if (that.subCallback != null) {
             that.subCallback(client, topic);
         }
@@ -318,7 +316,7 @@ class HubManager {
      * Private function, fired when a client unsubscribes from a topic
      */
     __broker_unsubscribed(topic, client) {
-        console.log('[HubManager MQTT] ' + client.id + ' has unsubscribed from ' + topic);
+        // console.log('[HubManager MQTT] ' + client.id + ' has unsubscribed from ' + topic);
         if (that.unsubCallback != null) {
             that.unsubCallback(client, topic);
         }
@@ -328,7 +326,7 @@ class HubManager {
      * Private function, fired when a client is disconnecting
      */
     __broker_disconnecting(client) {
-        console.log('[HubManager MQTT] clientDisconnecting : ', client.id);
+        // console.log('[HubManager MQTT] clientDisconnecting : ', client.id);
         // callback needed?... TODO
     };
 
@@ -336,7 +334,7 @@ class HubManager {
      * Private function, fired when a client is disconnected
      */
     __broker_disconnected(client) {
-        console.log('[HubManager MQTT] ' + client.id + ' is now disconnected');
+        // console.log('[HubManager MQTT] ' + client.id + ' is now disconnected');
         if (that.discCallback != null) {
             that.discCallback(client);
         }
